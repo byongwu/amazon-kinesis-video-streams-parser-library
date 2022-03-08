@@ -52,7 +52,6 @@ public final class KVSParserFrameWorker implements RequestHandler<KinesisEvent, 
     private final RekognizedFragmentsIndex rekognizedFragmentsIndex = new RekognizedFragmentsIndex();
 
     private String inputKvsStreamName;
-    private String outputKvsStreamName;
     private StreamOps kvsClient;
     private FragmentCheckpointManager fragmentCheckpointManager;
     private H264FrameProcessor h264FrameProcessor;
@@ -67,24 +66,15 @@ public final class KVSParserFrameWorker implements RequestHandler<KinesisEvent, 
                 new KVSParserFrameWorker();
         KVSParserFrameWorker.initialize(
                 System.getProperty("KVSStreamName"), Regions.fromName(System.getenv("AWS_REGION")));
-        KVSParserFrameWorker.startKDSWorker(System.getProperty("KDSStreamName"));
         Thread.sleep(KCL_INIT_DELAY_MILLIS); // Initial delay to wait for KCL to initialize
-        while (true) { // For local desktop testing.
-            KVSParserFrameWorker.processRekognizedOutputs();
-        }
+        log.info("Hello, World from KVSParserFrameWorker.");
     }
 
     /**
      * Initialize method to set variables.
      */
     private void initialize(final String kvsStreamName, final Regions regionName) {
-        this.inputKvsStreamName = kvsStreamName;
-        outputKvsStreamName = kvsStreamName + "-Rekognized";
-        kvsClient = new StreamOps(regionName, kvsStreamName, credentialsProvider);
-        h264FrameProcessor = H264FrameProcessor.create(credentialsProvider, outputKvsStreamName, regionName);
-        fragmentCheckpointManager = new DDBBasedFragmentCheckpointManager(kvsClient.getRegion(), credentialsProvider);
-        log.info("Initialized with input KVS stream: {}, output {}, region : {}",
-                inputKvsStreamName, outputKvsStreamName, regionName);
+        // TODO:
     }
 
     /**
@@ -138,15 +128,6 @@ public final class KVSParserFrameWorker implements RequestHandler<KinesisEvent, 
                 log.error("Error while processing fragment number: {}", fragmentNumber, e);
             }
         }
-    }
-
-    /**
-     * Start Kinesis Data Streams worker.
-     */
-    public void startKDSWorker(final String kdsStreamName) {
-        final KinesisDataStreamsWorker kinesisDataStreamsWorker = KinesisDataStreamsWorker.create(Regions.US_WEST_2,
-                credentialsProvider, kdsStreamName, rekognizedFragmentsIndex);
-        kdsWorkers.submit(kinesisDataStreamsWorker);
     }
 
     /**
