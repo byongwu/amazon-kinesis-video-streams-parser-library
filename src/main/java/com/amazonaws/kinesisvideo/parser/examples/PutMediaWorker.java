@@ -77,7 +77,7 @@ public class PutMediaWorker extends KinesisVideoCommon implements Runnable {
                 .withPayload(inputStream), new PutMediaAckResponseHandler() {
             @Override
             public void onAckEvent(AckEvent event) {
-                log.info("PutMedia Ack for stream {}: {} ", streamName, event.toString());
+                log.debug("PutMedia Ack for stream {}: {} ", streamName, event.toString());
                 if (AckEventType.Values.PERSISTED.equals(event.getAckEventType().getEnumValue())) {
                     numFragmentsPersisted++;
                 }
