@@ -21,6 +21,11 @@ import com.amazonaws.kinesisvideo.parser.mkv.Frame;
 import com.amazonaws.kinesisvideo.parser.mkv.FrameProcessException;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.io.IOException;
+import lombok.Getter;
+
 import static com.amazonaws.kinesisvideo.parser.utilities.BufferedImageUtil.addTextToImage;
 
 
@@ -29,6 +34,9 @@ public class H264FrameRenderer extends H264FrameDecoder {
     private static final int PIXEL_TO_LEFT = 10;
     private static final int PIXEL_TO_TOP_LINE_1 = 20;
     private static final int PIXEL_TO_TOP_LINE_2 = 40;
+
+    @Getter
+    private int frameCount;
 
     private final KinesisVideoFrameViewer kinesisVideoFrameViewer;
 
@@ -65,6 +73,14 @@ public class H264FrameRenderer extends H264FrameDecoder {
             }
         }
         kinesisVideoFrameViewer.update(bufferedImage);
+        if (frameCount % 100 == 0) {
+            try {
+                ImageIO.write(bufferedImage, "jpeg", new File(String.format("frame-capture-%s.jpg", frameCount)));
+            } catch (IOException e) {
+                log.warn("Couldn't convert to a JPEG", e);
+            }
+        }
+        frameCount++;
     }
 
 
