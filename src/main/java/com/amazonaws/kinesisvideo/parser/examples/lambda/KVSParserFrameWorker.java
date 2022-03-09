@@ -43,6 +43,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
+import com.amazonaws.kinesisvideo.parser.examples.KinesisVideoRendererExample;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.kinesisvideo.parser.TestResourceUtil2;
+
+
 @Slf4j
 public final class KVSParserFrameWorker implements RequestHandler<KinesisEvent, Context> {
     private static final int NUM_RETRIES = 10;
@@ -62,11 +67,18 @@ public final class KVSParserFrameWorker implements RequestHandler<KinesisEvent, 
      *
      */
     public static void main(final String[] args) throws Exception {
-        final KVSParserFrameWorker KVSParserFrameWorker =
-                new KVSParserFrameWorker();
-        KVSParserFrameWorker.initialize(
-                System.getProperty("KVSStreamName"), Regions.fromName(System.getenv("AWS_REGION")));
-        Thread.sleep(KCL_INIT_DELAY_MILLIS); // Initial delay to wait for KCL to initialize
+        // final KVSParserFrameWorker KVSParserFrameWorker =
+        //         new KVSParserFrameWorker();
+        // KVSParserFrameWorker.initialize(
+        //         System.getProperty("KVSStreamName"), Regions.fromName(System.getenv("AWS_REGION")));
+        // Thread.sleep(KCL_INIT_DELAY_MILLIS); // Initial delay to wait for KCL to initialize
+        KinesisVideoRendererExample example = KinesisVideoRendererExample.builder().region(Regions.US_WEST_2)
+            .streamName("render-example-stream")
+            .credentialsProvider(new ProfileCredentialsProvider())
+            .inputVideoStream(TestResourceUtil2.getTestInputStream("vogels_480.mkv"))
+            .renderFragmentMetadata(false)
+            .build();
+        example.execute();
         log.info("Hello, World from KVSParserFrameWorker.");
     }
 
