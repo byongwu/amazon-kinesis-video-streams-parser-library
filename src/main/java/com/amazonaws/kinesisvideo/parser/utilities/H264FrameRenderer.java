@@ -54,26 +54,29 @@ public class H264FrameRenderer extends H264FrameDecoder {
     public void process(Frame frame, MkvTrackMetadata trackMetadata, Optional<FragmentMetadata> fragmentMetadata,
                         Optional<FragmentMetadataVisitor.MkvTagProcessor> tagProcessor) throws FrameProcessException {
         final BufferedImage bufferedImage = decodeH264Frame(frame, trackMetadata);
+
+        String message = "";
+        if (fragmentMetadata.isPresent()) {
+            message = String.format("Fragment Number: %s", fragmentMetadata.get().getFragmentNumberString());
+            addTextToImage(bufferedImage, message, PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_1);
+            log.info(message);
+        }
+
         if (tagProcessor.isPresent()) {
             final FragmentMetadataVisitor.BasicMkvTagProcessor processor =
                     (FragmentMetadataVisitor.BasicMkvTagProcessor) tagProcessor.get();
 
-            if (fragmentMetadata.isPresent()) {
-                addTextToImage(bufferedImage,
-                        String.format("Fragment Number: %s", fragmentMetadata.get().getFragmentNumberString()),
-                        PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_1);
-            }
-
             if (processor.getTags().size() > 0) {
-                addTextToImage(bufferedImage, "Fragment Metadata: " + processor.getTags().toString(),
-                        PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_2);
+                message = "Fragment Metadata: " + processor.getTags().toString();
             } else {
-                addTextToImage(bufferedImage, "Fragment Metadata: No Metadata Available",
-                        PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_2);
+                message = "Fragment Metadata: No Metadata Available";
             }
+            addTextToImage(bufferedImage, message, PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_2);
         }
+
         kinesisVideoFrameViewer.update(bufferedImage);
         if (frameCount % 100 == 0) {
+            log.info(String.format("trackMetadata: trackNum: %s", trackMetadata.getTrackNumber()));
             try {
                 ImageIO.write(bufferedImage, "jpeg", new File(String.format("frame-capture-%s.jpg", frameCount)));
             } catch (IOException e) {
