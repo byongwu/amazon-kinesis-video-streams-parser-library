@@ -25,6 +25,8 @@ import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import lombok.Getter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import static com.amazonaws.kinesisvideo.parser.utilities.BufferedImageUtil.addTextToImage;
 
@@ -59,7 +61,9 @@ public class H264FrameRenderer extends H264FrameDecoder {
         if (fragmentMetadata.isPresent()) {
             message = String.format("Fragment Number: %s", fragmentMetadata.get().getFragmentNumberString());
             addTextToImage(bufferedImage, message, PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_1);
-            log.info(message);
+            DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");  
+            message = String.format("Fragment Date: %s", dateFormat.format(fragmentMetadata.get().getProducerSideTimetampAsDate()));
+            addTextToImage(bufferedImage, message, PIXEL_TO_LEFT, PIXEL_TO_TOP_LINE_1*3);
         }
 
         if (tagProcessor.isPresent()) {
